@@ -1,0 +1,159 @@
+---
+import Logo from './Logo.astro';
+import LangSwitch from './LangSwitch.astro';
+import Text from './Text.astro';
+import { t, type Lang } from '../i18n';
+import { phoneHref, site, telegramUrl } from '../data/site';
+
+interface Props {
+  lang: Lang;
+  path: string;
+}
+
+const { lang, path } = Astro.props;
+const dict = t(lang);
+const home = `/${lang}/`;
+
+const sections = [
+  { id: 'how-it-works', label: dict.nav.howItWorks },
+  { id: 'demo', label: dict.nav.demo },
+  { id: 'packages', label: dict.nav.packages },
+  { id: 'team', label: dict.nav.team },
+  { id: 'investors', label: dict.nav.investors },
+  { id: 'faq', label: 'FAQ' },
+  { id: 'contact', label: dict.cta.requestDemo },
+];
+
+const social = [
+  { label: 'Telegram', href: site.social.telegramChannel },
+  { label: 'Instagram', href: site.social.instagram },
+  { label: 'YouTube', href: site.social.youtube },
+  { label: 'LinkedIn', href: site.social.linkedin },
+].filter((s) => s.href);
+
+const tg = telegramUrl();
+const tel = phoneHref();
+---
+
+<footer class="site-footer">
+  <div class="container grid">
+    <div class="brand">
+      <Logo label="TasavVR" />
+      <p class="tagline">{dict.footer.tagline}</p>
+    </div>
+
+    <nav aria-label={dict.footer.sections}>
+      <h2 class="col-title">{dict.footer.sections}</h2>
+      <ul>
+        {sections.map((s) => <li><a href={`${home}#${s.id}`}>{s.label}</a></li>)}
+        <li><a href={`${home}privacy/`}>{dict.footer.privacy}</a></li>
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="col-title">{dict.footer.contacts}</h2>
+      <ul>
+        <li>
+          {tg ? <a href={tg} data-track="contact_click" data-channel="telegram" rel="noopener">Telegram @{site.contacts.telegram}</a> : <span>{'Telegram '}<Text text="[FILL: @username]" /></span>}
+        </li>
+        <li>
+          {tel ? <a href={tel} data-track="contact_click" data-channel="phone">{site.contacts.phone}</a> : <span><Text text="[FILL: +998 XX XXX XX XX]" /></span>}
+        </li>
+        <li>
+          {site.contacts.email ? <a href={`mailto:${site.contacts.email}`} data-track="contact_click" data-channel="email">{site.contacts.email}</a> : <span><Text text="[FILL: hello@tasavvr.uz]" /></span>}
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h2 class="col-title">{dict.footer.follow}</h2>
+      {
+        social.length ? (
+          <ul>
+            {social.map((s) => (
+              <li>
+                <a href={s.href} rel="noopener">{s.label}</a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="caption"><Text text="[FILL: Telegram channel, Instagram, YouTube, LinkedIn]" /></p>
+        )
+      }
+      <div class="lang-wrap"><LangSwitch lang={lang} path={path} label={dict.a11y.language} /></div>
+    </div>
+  </div>
+  <div class="container legal">
+    <p class="caption">{dict.footer.copyright}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+    padding-block: 56px 32px;
+    background: var(--blueprint-night);
+  }
+
+  .grid {
+    display: grid;
+    gap: 40px;
+  }
+
+  @media (min-width: 700px) {
+    .grid {
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    }
+  }
+
+  .tagline {
+    margin-top: 16px;
+    color: var(--concrete);
+    max-width: 22rem;
+  }
+
+  .col-title {
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--concrete);
+    margin-bottom: 12px;
+  }
+
+  ul {
+    list-style: none;
+    display: grid;
+    gap: 4px;
+  }
+
+  li a,
+  li span {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 6px;
+    min-height: 36px;
+    color: var(--drafting-paper);
+    text-decoration: none;
+    font-size: 16px;
+  }
+
+  li a:hover {
+    color: var(--plan-teal);
+  }
+
+  .lang-wrap {
+    margin-top: 16px;
+    margin-left: -12px;
+  }
+
+  .legal {
+    margin-top: 40px;
+  }
+
+  .legal p {
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+</style>

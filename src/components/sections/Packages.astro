@@ -1,0 +1,145 @@
+---
+/**
+ * Three columns — a genuine side-by-side comparison. Highlight Basic for now
+ * (what you can deliver today); move `packages.highlight` to "interactive"
+ * once it ships. Each button opens the form with that package selected.
+ */
+import Text from '../Text.astro';
+import { t, type Lang } from '../../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+---
+
+<section id="packages" class="section" aria-labelledby="packages-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="packages-title">{dict.packages.heading}</h2>
+      <p class="lead">{dict.packages.note}</p>
+    </div>
+
+    <ul class="plans">
+      {
+        dict.packages.plans.map((plan) => {
+          const highlighted = plan.id === dict.packages.highlight;
+          const inDev = plan.id === 'interactive';
+          return (
+            <li class:list={['plan', { highlighted }]}>
+              <p class:list={['status', highlighted ? 'status-today' : inDev ? 'status-next' : 'status-plain']}>{plan.status}</p>
+              <h3>{plan.name}</h3>
+              <p class="price">
+                <span class="amount">{plan.price}</span>
+                <span class="per">{plan.per}</span>
+              </p>
+              <ul class="includes">
+                {plan.includes.map((item) => (
+                  <li>
+                    <Text text={item} />
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="#contact"
+                class:list={['btn', highlighted ? 'btn-primary' : 'btn-secondary']}
+                data-package={plan.id}
+                data-track="package_click"
+              >
+                {plan.button}
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .plans {
+    list-style: none;
+    display: grid;
+    gap: 16px;
+  }
+
+  .plan {
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+    gap: 16px;
+    padding: 28px 24px;
+    background: var(--graphite);
+    border: 1px solid var(--line);
+  }
+
+  .plan.highlighted {
+    border: 2px solid var(--plan-teal);
+  }
+
+  .status-plain {
+    color: var(--concrete);
+  }
+
+  .status-plain::before {
+    display: none;
+  }
+
+  h3 {
+    font-size: var(--h3);
+  }
+
+  .price {
+    display: grid;
+    gap: 2px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .amount {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    line-height: 1.25;
+  }
+
+  .per {
+    color: var(--concrete);
+    font-size: var(--small);
+  }
+
+  .includes {
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+    font-size: 16px;
+  }
+
+  .includes li {
+    position: relative;
+    padding-left: 22px;
+  }
+
+  .includes li::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 0.6em;
+    width: 10px;
+    height: 1px;
+    background: var(--plan-teal);
+  }
+
+  .btn {
+    justify-self: start;
+    margin-top: 8px;
+  }
+
+  @media (min-width: 900px) {
+    .plans {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+  }
+</style>

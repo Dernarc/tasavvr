@@ -1,0 +1,404 @@
+---
+/**
+ * One sample apartment, drawn once and reused down the page (docs §5.5):
+ * linework in the hero, marked up in Problem, plan vs. render in the slider.
+ *
+ * Replace with the plan of a home you have actually modelled. Every variant
+ * shares the same viewBox, so the slider halves line up exactly.
+ * Scale: 50 px = 1 m. Apartment: 13 × 7.5 m.
+ */
+import type { Dict } from '../i18n/en';
+import type { Lang } from '../i18n';
+
+interface Props {
+  variant: 'line' | 'paper' | 'render';
+  rooms: Dict['rooms'];
+  label?: string;
+  pins?: boolean;
+  areas?: boolean;
+  dimensions?: boolean;
+  lang: Lang;
+}
+
+const { variant, rooms, label, pins = false, areas = true, dimensions = false, lang } = Astro.props;
+const area = (value: number) =>
+  `${lang === 'en' ? String(value) : String(value).replace('.', ',')}\u00A0${lang === 'ru' ? 'м²' : 'm²'}`;
+const shadowId = `fp-shadow-${Math.random().toString(36).slice(2, 8)}`;
+
+// Exterior and interior walls, with door gaps left open.
+const exterior = 'M290 415 H40 V40 H690 V415 H340';
+const interior = [
+  'M215 40 V290', // bedroom | living
+  'M40 240 H160 M205 240 H215', // bedroom / bathroom + hall
+  'M150 240 V260 M150 305 V415', // bathroom | hall
+  'M215 290 H290 M365 290 H490', // living / hall, wide opening
+  'M490 40 V205 M490 250 V330 M490 375 V415', // living, hall | kitchen, kids' room
+  'M490 265 H690', // kitchen / kids' room
+].join(' ');
+
+const doors = [
+  'M160 240 L160 195 A45 45 0 0 1 205 240', // bedroom
+  'M150 260 L105 260 A45 45 0 0 0 150 305', // bathroom
+  'M490 205 L535 205 A45 45 0 0 1 490 250', // kitchen
+  'M490 375 L535 375 A45 45 0 0 0 490 330', // kids' room
+  'M290 415 L290 365 A50 50 0 0 1 340 415', // entrance
+];
+
+// Windows: [x, y, width, height] on the exterior walls.
+const windows = [
+  [80, 35, 95, 10],
+  [280, 35, 140, 10],
+  [540, 35, 100, 10],
+  [35, 90, 10, 100],
+  [685, 90, 10, 90],
+  [685, 300, 10, 80],
+];
+
+const floors = [
+  { d: 'M40 40 H215 V240 H40 Z', kind: 'wood' },
+  { d: 'M215 40 H490 V290 H215 Z', kind: 'wood' },
+  { d: 'M490 40 H690 V265 H490 Z', kind: 'tile' },
+  { d: 'M40 240 H150 V415 H40 Z', kind: 'tile' },
+  { d: 'M150 240 H215 V290 H490 V415 H150 Z', kind: 'hall' },
+  { d: 'M490 265 H690 V415 H490 Z', kind: 'wood' },
+];
+
+const labels = [
+  { x: 120, y: 176, name: rooms.bedroom, area: 14 },
+  { x: 352, y: 240, name: rooms.living, area: 27.5 },
+  { x: 585, y: 106, name: rooms.kitchen, area: 18 },
+  { x: 105, y: 340, name: rooms.bathroom, area: 7.7 },
+  { x: 420, y: 345, name: rooms.hall, area: null },
+  { x: 590, y: 315, name: rooms.kids, area: 12 },
+];
+---
+
+<svg
+  class={`fp fp-${variant}`}
+  viewBox="0 0 730 455"
+  xmlns="http://www.w3.org/2000/svg"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  focusable="false"
+>
+  {
+    variant === 'render' && (
+      <defs>
+        <filter id={shadowId} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="2" dy="3" stdDeviation="2.5" flood-color="#000" flood-opacity="0.35" />
+        </filter>
+      </defs>
+    )
+  }
+
+  {variant === 'render' && floors.map((f) => <path d={f.d} class={`floor floor-${f.kind}`} />)}
+
+  <!-- Furniture -->
+  <g class="furniture" filter={variant === 'render' ? `url(#${shadowId})` : undefined}>
+    <!-- bedroom: double bed, nightstands, wardrobe -->
+    <rect x="87" y="47" width="80" height="100" class="soft" />
+    <rect x="94" y="53" width="30" height="16" class="pillow" />
+    <rect x="130" y="53" width="30" height="16" class="pillow" />
+    <rect x="87" y="85" width="80" height="62" class="cover" />
+    <rect x="62" y="48" width="20" height="20" class="wood-item" />
+    <rect x="172" y="48" width="20" height="20" class="wood-item" />
+    <rect x="45" y="165" width="30" height="72" class="wood-item" />
+    <!-- living: sofa, rug, table, TV unit -->
+    <rect x="285" y="100" width="100" height="100" class="rug" />
+    <rect x="315" y="128" width="42" height="44" class="wood-item" />
+    <path d="M400 95 H445 V205 H400 V190 H412 V110 H400 Z" class="sofa" />
+    <rect x="412" y="110" width="33" height="80" class="sofa-seat" />
+    <rect x="220" y="112" width="12" height="76" class="dark-item" />
+    <!-- kitchen: counters, fridge, table -->
+    <path d="M540 45 H685 V200 H655 V75 H540 Z" class="counter" />
+    <rect x="500" y="45" width="36" height="34" class="fridge" />
+    <circle cx="610" cy="140" r="7" class="dark-item" />
+    <circle cx="668" cy="120" r="8" class="dark-item" />
+    <circle cx="570" cy="175" r="26" class="wood-item" />
+    <!-- bathroom: tub, toilet, sink -->
+    <rect x="45" y="378" width="100" height="32" rx="10" class="porcelain" />
+    <rect x="47" y="312" width="24" height="30" rx="10" class="porcelain" />
+    <rect x="45" y="246" width="26" height="36" class="porcelain" />
+    <!-- hall: shoe cabinet -->
+    <rect x="355" y="395" width="80" height="16" class="wood-item" />
+    <!-- kids' room: bed, desk -->
+    <rect x="582" y="365" width="100" height="45" class="soft" />
+    <rect x="582" y="370" width="18" height="35" class="pillow" />
+    <rect x="652" y="272" width="32" height="70" class="wood-item" />
+  </g>
+
+  <!-- Walls -->
+  <path d={exterior} class="wall wall-ext" />
+  <path d={interior} class="wall wall-int" />
+  {
+    windows.map(([x, y, w, h]) => (
+      <g class="window">
+        <rect x={x} y={y} width={w} height={h} />
+        {w > h ? <line x1={x} y1={y + h / 2} x2={x + w} y2={y + h / 2} /> : <line x1={x + w / 2} y1={y} x2={x + w / 2} y2={y + h} />}
+      </g>
+    ))
+  }
+  {doors.map((d) => <path d={d} class="door" />)}
+
+  {
+    dimensions && (
+      <g class="dims">
+        <path d="M40 16 H690 M40 10 V22 M690 10 V22" />
+        <text x="365" y="11" text-anchor="middle">13000</text>
+        <path d="M16 40 V415 M10 40 H22 M10 415 H22" />
+        <text x="11" y="228" text-anchor="middle" transform="rotate(-90 11 228)">7500</text>
+        <path d="M40 438 H215 M40 432 V444 M215 432 V444" />
+        <text x="127" y="452" text-anchor="middle">3500</text>
+        <path d="M215 438 H490 M490 432 V444" />
+        <text x="352" y="452" text-anchor="middle">5500</text>
+      </g>
+    )
+  }
+
+  <!-- Room labels -->
+  {
+    labels.map((l) => (
+      <g class="label">
+        <text x={l.x} y={l.y} text-anchor="middle" class="room">
+          {l.name}
+        </text>
+        {areas && l.area !== null && (
+          <text x={l.x} y={l.y + 16} text-anchor="middle" class="area">
+            {area(l.area)}
+          </text>
+        )}
+      </g>
+    ))
+  }
+
+  {
+    pins && (
+      <g class="redlines">
+        <path d="M478 46 C470 90 470 160 478 198 M502 46 C510 90 510 160 502 198" class="cloud" />
+        <path d="M60 40 V240 M40 60 H215" class="measure" />
+        <g class="pin">
+          <circle cx="150" cy="118" r="14" />
+          <text x="150" y="123" text-anchor="middle">1</text>
+        </g>
+        <g class="pin">
+          <circle cx="628" cy="175" r="14" />
+          <text x="628" y="180" text-anchor="middle">2</text>
+        </g>
+        <g class="pin">
+          <circle cx="490" cy="120" r="14" />
+          <text x="490" y="125" text-anchor="middle">3</text>
+        </g>
+      </g>
+    )
+  }
+</svg>
+
+<style>
+  .fp {
+    width: 100%;
+    height: auto;
+    font-family: var(--font-body);
+    --fp-ink: var(--plan-teal);
+    --fp-bg: var(--blueprint-night);
+    --fp-thin: rgb(125 214 222 / 0.5);
+    --fp-label: var(--drafting-paper);
+    --fp-muted: var(--concrete);
+  }
+
+  .fp-paper {
+    --fp-ink: #22343a;
+    --fp-bg: var(--drafting-paper);
+    --fp-thin: rgb(34 52 58 / 0.45);
+    --fp-label: var(--blueprint-night);
+    --fp-muted: #4d5c60;
+  }
+
+  .fp-render {
+    --fp-ink: #e7e9e5;
+    --fp-bg: #9fd0db;
+    --fp-label: var(--blueprint-night);
+    --fp-muted: #33464c;
+  }
+
+  .wall {
+    fill: none;
+    stroke: var(--fp-ink);
+    stroke-linecap: square;
+  }
+
+  .wall-ext {
+    stroke-width: 10;
+  }
+
+  .wall-int {
+    stroke-width: 6;
+  }
+
+  .fp-line .wall-ext {
+    stroke-width: 3;
+  }
+
+  .fp-line .wall-int {
+    stroke-width: 1.5;
+  }
+
+  .window rect {
+    fill: var(--fp-bg);
+    stroke: var(--fp-ink);
+    stroke-width: 1;
+  }
+
+  .window line {
+    stroke: var(--fp-ink);
+    stroke-width: 1;
+  }
+
+  .door {
+    fill: none;
+    stroke: var(--fp-thin);
+    stroke-width: 1.2;
+  }
+
+  .fp-render .door {
+    stroke: rgb(13 27 32 / 0.35);
+  }
+
+  /* Furniture: outlines on plans, solid pieces on the render */
+  .furniture > * {
+    fill: none;
+    stroke: var(--fp-thin);
+    stroke-width: 1;
+  }
+
+  .fp-line .furniture > * {
+    stroke: rgb(125 214 222 / 0.3);
+  }
+
+  .fp-render .furniture > * {
+    stroke: rgb(0 0 0 / 0.12);
+  }
+
+  .fp-render .soft {
+    fill: #eef0ec;
+  }
+
+  .fp-render .cover {
+    fill: #7fa9b0;
+  }
+
+  .fp-render .pillow {
+    fill: #ffffff;
+  }
+
+  .fp-render .wood-item {
+    fill: #8a5a3a;
+  }
+
+  .fp-render .rug {
+    fill: #c9c1b3;
+  }
+
+  .fp-render .sofa {
+    fill: #3d5a63;
+  }
+
+  .fp-render .sofa-seat {
+    fill: #4f717b;
+  }
+
+  .fp-render .dark-item {
+    fill: #263238;
+  }
+
+  .fp-render .counter {
+    fill: #d9dbd6;
+  }
+
+  .fp-render .fridge {
+    fill: #f5f6f4;
+  }
+
+  .fp-render .porcelain {
+    fill: #fbfbfa;
+  }
+
+  .floor-wood {
+    fill: #c89a6a;
+  }
+
+  .floor-tile {
+    fill: #cfd6d6;
+  }
+
+  .floor-hall {
+    fill: #b08660;
+  }
+
+  .fp-render .wall-ext,
+  .fp-render .wall-int {
+    stroke: #eceee9;
+  }
+
+  .fp-render .wall-ext {
+    stroke-width: 12;
+  }
+
+  /* Labels */
+  .room {
+    fill: var(--fp-label);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .area {
+    fill: var(--fp-muted);
+    font-size: 11px;
+  }
+
+  .fp-line .room {
+    fill: var(--plan-teal);
+  }
+
+  .fp-render .label text {
+    paint-order: stroke;
+    stroke: rgb(255 255 255 / 0.75);
+    stroke-width: 3px;
+  }
+
+  .dims path {
+    fill: none;
+    stroke: var(--fp-thin);
+    stroke-width: 1;
+  }
+
+  .dims text {
+    fill: var(--fp-muted);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Redlines (Problem only) */
+  .redlines .cloud,
+  .redlines .measure {
+    fill: none;
+    stroke: var(--redline);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+  }
+
+  .redlines .measure {
+    stroke-dasharray: 2 4;
+    opacity: 0.7;
+  }
+
+  .pin circle {
+    fill: var(--redline);
+  }
+
+  .pin text {
+    fill: #fff;
+    font-size: 14px;
+    font-weight: 700;
+  }
+</style>

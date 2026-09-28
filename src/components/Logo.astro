@@ -1,0 +1,22 @@
+---
+/**
+ * The logo is an image file, never retyped in a web font (docs §5.3).
+ * public/brand/logo.svg is traced from Unbounded as a stand-in:
+ * replace it with the real logo file (light version for dark backgrounds).
+ */
+interface Props {
+  label?: string;
+  height?: number;
+}
+
+const { label = 'TasavVR', height = 20 } = Astro.props;
+---
+
+<img src="/brand/logo.svg" alt={label} height={height} width={Math.round(height * 7.95)} class="logo" />
+
+<style>
+  .logo {
+    height: var(--logo-h, 20px);
+    width: auto;
+  }
+</style>

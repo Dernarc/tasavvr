@@ -1,0 +1,158 @@
+---
+/** Compare against categories, not brand names (§4.7). */
+import { t, type Lang } from '../../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+const last = dict.why.columns.length - 1;
+---
+
+<section id="why-us" class="section" aria-labelledby="why-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="why-title">{dict.why.heading}</h2>
+    </div>
+
+    <div class="table-wrap" role="region" aria-label={dict.why.tableLabel} tabindex="0">
+      <table>
+        <thead>
+          <tr>
+            <td></td>
+            {dict.why.columns.map((col, i) => <th scope="col" class:list={{ ours: i === last }}>{col}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {
+            dict.why.rows.map((row) => (
+              <tr>
+                <th scope="row">{row.label}</th>
+                {row.cells.map((cell, i) => (
+                  <td class:list={{ ours: i === last, next: i === last && cell === dict.status.next }}>{cell}</td>
+                ))}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <ul class="reasons">
+      {
+        dict.why.reasons.map((reason) => (
+          <li>
+            <h3>{reason.title}</h3>
+            <p>{reason.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    margin-inline: calc(-1 * var(--gutter));
+    border-inline: 0;
+  }
+
+  table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  th,
+  td {
+    padding: 14px 16px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--line);
+  }
+
+  tbody tr:nth-child(odd) {
+    background: var(--graphite);
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  thead th {
+    font-weight: 600;
+    color: var(--concrete);
+    font-size: 14px;
+  }
+
+  tbody th {
+    font-weight: 600;
+    width: 30%;
+    position: sticky;
+    left: 0;
+    background: inherit;
+    background-color: var(--blueprint-night);
+  }
+
+  tbody tr:nth-child(odd) th {
+    background-color: var(--graphite);
+  }
+
+  td {
+    color: var(--concrete);
+  }
+
+  .ours {
+    color: var(--drafting-paper);
+    font-weight: 600;
+    border-left: 2px solid var(--plan-teal);
+  }
+
+  thead .ours {
+    color: var(--plan-teal);
+  }
+
+  td.next {
+    color: var(--concrete);
+    font-style: italic;
+  }
+
+  .reasons {
+    list-style: none;
+    display: grid;
+    gap: 28px;
+    margin-top: 48px;
+  }
+
+  .reasons h3 {
+    font-size: var(--h3);
+    margin-bottom: 8px;
+  }
+
+  .reasons p {
+    color: var(--concrete);
+  }
+
+  @media (min-width: 900px) {
+    .table-wrap {
+      margin-inline: 0;
+      border-inline: 1px solid var(--line);
+    }
+
+    table {
+      font-size: 16px;
+    }
+
+    .reasons {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+  }
+</style>

@@ -1,0 +1,32 @@
+---
+/**
+ * The bare domain opens /uz/, or the language the visitor chose last time.
+ * No redirect by location (§7.3).
+ */
+import { site } from '../data/site';
+---
+
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TasavVR</title>
+    <link rel="canonical" href={`${site.url}/uz/`} />
+    <meta name="robots" content="noindex" />
+    <script is:inline>
+      (function () {
+        var lang = 'uz';
+        try {
+          var saved = localStorage.getItem('tasavvr-lang');
+          if (saved === 'ru' || saved === 'en' || saved === 'uz') lang = saved;
+        } catch (e) {}
+        location.replace('/' + lang + '/' + location.hash);
+      })();
+    </script>
+    <meta http-equiv="refresh" content="0; url=/uz/" />
+  </head>
+  <body style="background:#0D1B20;color:#F3F4F1;font-family:system-ui,sans-serif">
+    <p><a href="/uz/" style="color:#7DD6DE">TasavVR</a></p>
+  </body>
+</html>

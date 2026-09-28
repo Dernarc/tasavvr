@@ -1,0 +1,16 @@
+---
+/**
+ * Renders dictionary copy: escapes it, fills {tokens} from `values`, and turns
+ * [FILL: …] into a visible marker.
+ */
+import { format } from '../i18n';
+
+interface Props {
+  text: string;
+  values?: Record<string, string | number | null>;
+}
+
+const { text, values = {} } = Astro.props;
+---
+
+<Fragment set:html={format(text, values)} />

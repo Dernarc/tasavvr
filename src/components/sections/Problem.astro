@@ -1,0 +1,130 @@
+---
+/**
+ * The only light section: "paper", the 2D world. One floor plan marked up
+ * like an architect's redlines — three notes pinned to rooms, two in the
+ * margin. Not a grid of identical cards (§4.2).
+ */
+import FloorPlan from '../FloorPlan.astro';
+import { t, type Lang } from '../../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+---
+
+<section id="problem" class="section paper" aria-labelledby="problem-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="problem-title">{dict.problem.heading}</h2>
+    </div>
+
+    <div class="sheet">
+      <figure class="plan">
+        <FloorPlan
+          variant="paper"
+          rooms={dict.rooms}
+          label={dict.problem.planLabel}
+          pins
+          dimensions
+          lang={lang}
+        />
+      </figure>
+
+      <div class="notes">
+        <ol class="pinned">
+          {
+            dict.problem.pinned.map((note, i) => (
+              <li>
+                <span class="num" aria-hidden="true">{i + 1}</span>
+                <p>
+                  <strong>{note.room}.</strong> {note.text}
+                </p>
+              </li>
+            ))
+          }
+        </ol>
+        <ul class="margin">
+          {dict.problem.margin.map((note) => <li>{note}</li>)}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sheet {
+    display: grid;
+    gap: 32px;
+  }
+
+  .plan {
+    margin: 0;
+    padding: 16px 12px;
+    border: 1px solid rgb(13 27 32 / 0.18);
+    background:
+      repeating-linear-gradient(0deg, transparent 0 23px, rgb(31 111 120 / 0.07) 23px 24px),
+      repeating-linear-gradient(90deg, transparent 0 23px, rgb(31 111 120 / 0.07) 23px 24px),
+      #fbfbf9;
+  }
+
+  .pinned {
+    list-style: none;
+    display: grid;
+    gap: 20px;
+  }
+
+  .pinned li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .num {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--redline);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .pinned strong {
+    color: var(--redline);
+  }
+
+  .margin {
+    list-style: none;
+    display: grid;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px dashed rgb(180 35 24 / 0.5);
+  }
+
+  /* Margin notes: set like pencil notes, italic, off to the side */
+  .margin li {
+    padding-left: 16px;
+    border-left: 2px solid var(--redline);
+    font-style: italic;
+    color: #3a4a4f;
+  }
+
+  @media (min-width: 900px) {
+    .sheet {
+      grid-template-columns: 8fr 4fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .plan {
+      padding: 32px;
+    }
+  }
+</style>

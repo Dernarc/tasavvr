@@ -1,0 +1,185 @@
+---
+/**
+ * Tabs: Construction companies (default), Architects, Buyers.
+ * Without JavaScript all three panels show, one after another.
+ */
+import { t, type Lang } from '../../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+const tabs = dict.forWhom.tabs;
+---
+
+<section id="for-whom" class="section" aria-labelledby="for-whom-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="for-whom-title">{dict.forWhom.heading}</h2>
+    </div>
+
+    <div class="tabs" data-tabs>
+      <div class="tablist" role="tablist" aria-labelledby="for-whom-title" hidden data-tablist>
+        {
+          tabs.map((tab, i) => (
+            <button
+              type="button"
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-controls={`panel-${tab.id}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              tabindex={i === 0 ? 0 : -1}
+            >
+              {tab.label}
+            </button>
+          ))
+        }
+      </div>
+
+      {
+        tabs.map((tab) => (
+          <div class="panel" id={`panel-${tab.id}`} role="tabpanel" aria-labelledby={`tab-${tab.id}`} tabindex="0" data-panel>
+            <h3 class="panel-title">{tab.label}</h3>
+            <ul class="points">
+              {tab.points.map((point) => (
+                <li>
+                  <h4>{point.title}</h4>
+                  <p>{point.text}</p>
+                  {point.inDevelopment && <span class="status status-next">{dict.status.next}</span>}
+                </li>
+              ))}
+            </ul>
+            {tab.action === 'demo' ? (
+              <a href="#contact" class="btn btn-primary">
+                {dict.cta.requestDemo}
+              </a>
+            ) : (
+              <a href="#demo" class="btn btn-secondary">
+                {dict.cta.watchWalkthrough}
+              </a>
+            )}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    border-bottom: 1px solid var(--line-strong);
+    margin-bottom: 32px;
+  }
+
+  .tablist[hidden] {
+    display: none;
+  }
+
+  [role='tab'] {
+    flex: 0 0 auto;
+    min-height: 48px;
+    padding: 10px 14px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: none;
+    color: var(--concrete);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  [role='tab']:hover {
+    color: var(--drafting-paper);
+  }
+
+  [role='tab'][aria-selected='true'] {
+    color: var(--plan-teal);
+    border-bottom-color: var(--plan-teal);
+    background: var(--graphite);
+  }
+
+  .panel {
+    display: grid;
+    gap: 28px;
+    justify-items: start;
+  }
+
+  .panel + .panel {
+    margin-top: 48px;
+  }
+
+  /* With JS: one panel at a time, tab labels replace the panel headings */
+  .tabs.is-ready .panel + .panel {
+    margin-top: 0;
+  }
+
+  .tabs.is-ready .panel-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .panel[hidden] {
+    display: none;
+  }
+
+  .panel-title {
+    color: var(--plan-teal);
+  }
+
+  .points {
+    list-style: none;
+    display: grid;
+    gap: 1px;
+    width: 100%;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .points li {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    padding: 20px;
+    background: var(--blueprint-night);
+  }
+
+  h4 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .points p {
+    color: var(--concrete);
+    font-size: 16px;
+  }
+
+  @media (min-width: 700px) {
+    .points {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .points {
+      grid-template-columns: repeat(var(--cols, 4), 1fr);
+    }
+
+    .points:has(> li:nth-child(3):last-child) {
+      --cols: 3;
+    }
+
+    .points li {
+      padding: 24px;
+    }
+  }
+</style>

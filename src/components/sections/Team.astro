@@ -1,0 +1,100 @@
+---
+/** Photos all shot the same way: same background, same framing (§4.9). */
+import Text from '../Text.astro';
+import { t, type Lang } from '../../i18n';
+import { site } from '../../data/site';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+const members = dict.team.members.map((m, i) => ({ ...m, ...(site.team[i] ?? { name: null, photo: null }) }));
+---
+
+<section id="team" class="section" aria-labelledby="team-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="team-title">{dict.team.heading}</h2>
+      <p class="lead">{dict.team.sub}</p>
+    </div>
+
+    <ul class="people">
+      {
+        members.map((m) => (
+          <li>
+            <div class="photo frame">
+              {m.photo ? (
+                <img src={m.photo} alt={m.name ?? ''} loading="lazy" decoding="async" width="480" height="600" />
+              ) : (
+                <div class="placeholder">
+                  <Text text={dict.team.photoPending} />
+                </div>
+              )}
+            </div>
+            <h3>{m.name ?? <Text text={dict.team.namePending} />}</h3>
+            <p class="role">{m.role}</p>
+            <p class="line">
+              <Text text={m.line} />
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .people {
+    list-style: none;
+    display: grid;
+    gap: 40px;
+  }
+
+  li {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+
+  .photo {
+    aspect-ratio: 4 / 5;
+    margin-bottom: 8px;
+  }
+
+  .photo img,
+  .photo .placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  h3 {
+    font-size: var(--h3);
+  }
+
+  .role {
+    color: var(--plan-teal);
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .line {
+    color: var(--concrete);
+    font-size: 16px;
+  }
+
+  @media (min-width: 600px) {
+    .people {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .people {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+  }
+</style>

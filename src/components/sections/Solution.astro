@@ -1,0 +1,251 @@
+---
+import FloorPlan from '../FloorPlan.astro';
+import Text from '../Text.astro';
+import { t, type Lang } from '../../i18n';
+import { site } from '../../data/site';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+const { sliderPlan, sliderRender, testPhotos } = site.media;
+const usingSample = !(sliderPlan && sliderRender);
+const photos = testPhotos.length ? testPhotos : [null, null, null];
+---
+
+<section id="solution" class="section" aria-labelledby="solution-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="solution-title">{dict.solution.heading}</h2>
+      <p class="lead">{dict.solution.text}</p>
+    </div>
+
+    <!--
+      Plan/3D slider: the range input gives touch, mouse and arrow-key control
+      for free; the script only mirrors its value into --pos.
+    -->
+    <figure class="compare">
+      <div class="stage frame" style="--pos: 50%" data-compare>
+        <div class="layer render" aria-hidden="true">
+          {sliderRender ? <img src={sliderRender} alt="" loading="lazy" decoding="async" /> : <FloorPlan variant="render" lang={lang} rooms={dict.rooms} />}
+        </div>
+        <div class="layer plan" aria-hidden="true">
+          {sliderPlan ? <img src={sliderPlan} alt="" loading="lazy" decoding="async" /> : <FloorPlan variant="paper" lang={lang} rooms={dict.rooms} />}
+        </div>
+        <span class="tag tag-left" aria-hidden="true">{dict.solution.planTag}</span>
+        <span class="tag tag-right" aria-hidden="true">{dict.solution.renderTag}</span>
+        <div class="handle" aria-hidden="true"><span></span></div>
+        <input type="range" min="0" max="100" value="50" step="1" aria-label={dict.solution.sliderLabel} data-compare-input />
+      </div>
+      <figcaption class="caption">
+        {dict.solution.caption}
+        {usingSample && <><br /><Text text={dict.solution.sampleNote} /></>}
+      </figcaption>
+    </figure>
+
+    <div class="lists">
+      <div>
+        <h3 class="status status-today">{dict.status.today}</h3>
+        <ul>{dict.solution.today.map((item) => <li>{item}</li>)}</ul>
+      </div>
+      <div>
+        <h3 class="status status-next">{dict.status.next}</h3>
+        <ul class="next">{dict.solution.next.map((item) => <li>{item}</li>)}</ul>
+      </div>
+    </div>
+
+    <div class="photos">
+      <p class="caption">{dict.solution.photosLabel}</p>
+      <ul>
+        {
+          photos.map((src) => (
+            <li class="frame">
+              {src ? (
+                <img src={src} alt="" loading="lazy" decoding="async" />
+              ) : (
+                <div class="placeholder">
+                  <Text text={dict.solution.photoPending} />
+                </div>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .compare {
+    margin: 0;
+  }
+
+  .stage {
+    position: relative;
+    aspect-ratio: 730 / 455;
+    user-select: none;
+    touch-action: pan-y;
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+  }
+
+  .layer :global(svg),
+  .layer img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .render {
+    background: #9fd0db;
+  }
+
+  .plan {
+    background: var(--drafting-paper);
+    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+  }
+
+  .tag {
+    position: absolute;
+    top: 12px;
+    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    background: rgb(13 27 32 / 0.85);
+    color: var(--drafting-paper);
+    pointer-events: none;
+  }
+
+  .tag-left {
+    left: 12px;
+  }
+
+  .tag-right {
+    right: 12px;
+    color: var(--plan-teal);
+  }
+
+  .handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--pos);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--plan-teal);
+    pointer-events: none;
+  }
+
+  .handle span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--plan-teal);
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.35);
+  }
+
+  .handle span::before,
+  .handle span::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border: 6px solid transparent;
+    transform: translateY(-50%);
+  }
+
+  .handle span::before {
+    left: 7px;
+    border-right-color: var(--blueprint-night);
+  }
+
+  .handle span::after {
+    right: 7px;
+    border-left-color: var(--blueprint-night);
+  }
+
+  /* The real control: invisible, covers the stage, owns input and focus. */
+  input[type='range'] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: ew-resize;
+  }
+
+  .stage:has(input:focus-visible) {
+    outline: 2px solid var(--plan-teal);
+    outline-offset: 3px;
+  }
+
+  figcaption {
+    margin-top: 12px;
+  }
+
+  .lists {
+    display: grid;
+    gap: 32px;
+    margin-top: 48px;
+  }
+
+  .lists h3 {
+    font-family: var(--font-body);
+    margin-bottom: 12px;
+  }
+
+  .lists ul {
+    display: grid;
+    gap: 10px;
+    padding-left: 20px;
+  }
+
+  .lists .next {
+    color: var(--concrete);
+  }
+
+  .photos {
+    margin-top: 48px;
+  }
+
+  .photos ul {
+    list-style: none;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(240px, 1fr);
+    gap: 16px;
+    margin-top: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .photos li {
+    aspect-ratio: 4 / 3;
+    scroll-snap-align: start;
+  }
+
+  .photos img,
+  .photos .placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (min-width: 900px) {
+    .lists {
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+    }
+  }
+</style>

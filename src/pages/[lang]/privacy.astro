@@ -1,0 +1,68 @@
+---
+import Base from '../../layouts/Base.astro';
+import Text from '../../components/Text.astro';
+import { languages, t, type Lang } from '../../i18n';
+
+export function getStaticPaths() {
+  return languages.map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const dict = t(lang);
+const p = dict.privacy;
+---
+
+<Base lang={lang} path="privacy/" title={dict.meta.privacyTitle} description={p.sections[1]!.p[0]!}>
+  <article class="section container doc">
+    <p class="caption"><a href={`/${lang}/`}>← {p.back}</a></p>
+    <h1>{p.heading}</h1>
+    <p class="caption">{p.updated}</p>
+    {
+      p.sections.map((s) => (
+        <section>
+          <h2>{s.h}</h2>
+          {s.p.map((para) => (
+            <p>
+              <Text text={para} />
+            </p>
+          ))}
+        </section>
+      ))
+    }
+  </article>
+</Base>
+
+<style>
+  .doc {
+    max-width: calc(720px + 2 * var(--gutter));
+    display: grid;
+    gap: 16px;
+  }
+
+  /* "конфиденциальности" is 353 px wide at 24 px: too wide for a 360 px phone. */
+  h1 {
+    font-size: 20px;
+    margin-top: 16px;
+  }
+
+  @media (min-width: 600px) {
+    h1 {
+      font-size: var(--h2);
+    }
+  }
+
+  section {
+    display: grid;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  h2 {
+    font-size: var(--h3);
+  }
+
+  section p {
+    color: var(--concrete);
+    max-width: 65ch;
+  }
+</style>

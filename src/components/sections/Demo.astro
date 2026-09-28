@@ -1,0 +1,266 @@
+---
+/**
+ * With no clients yet, this section does most of the selling (§4.6).
+ * - Main video: YouTube, loaded only when the visitor presses play.
+ * - Gallery: 3–6 images per house model, swipeable on phones.
+ * - Optional 360° room view: Pannellum, loaded only when opened.
+ */
+import FloorPlan from '../FloorPlan.astro';
+import Text from '../Text.astro';
+import { format, t, type Lang } from '../../i18n';
+import { site } from '../../data/site';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+const { demoYoutubeId, panorama } = site.media;
+const hl = lang === 'uz' ? 'uz' : lang;
+---
+
+<section id="demo" class="section" aria-labelledby="demo-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="demo-title">{dict.demo.heading}</h2>
+      <p class="lead">{dict.demo.sub}</p>
+    </div>
+
+    <div class="video frame">
+      {
+        demoYoutubeId ? (
+          <button
+            type="button"
+            class="lite-yt"
+            data-youtube={demoYoutubeId}
+            data-youtube-lang={hl}
+            data-track="video_play"
+            style={`background-image: url(https://i.ytimg.com/vi/${demoYoutubeId}/hqdefault.jpg)`}
+          >
+            <span class="play" aria-hidden="true"></span>
+            <span class="visually-hidden">{dict.demo.play}</span>
+          </button>
+        ) : (
+          <div class="placeholder video-pending">
+            <span class="play" aria-hidden="true"></span>
+            <p>
+              <Text text={dict.demo.videoPending} />
+            </p>
+          </div>
+        )
+      }
+    </div>
+    {demoYoutubeId && <p class="caption note">{dict.demo.consentNote}</p>}
+
+    <p class="stats">
+      <Text text={dict.demo.stats} values={{ models: site.stats.houseModels, testers: site.stats.testers }} />
+    </p>
+
+    <div class="gallery">
+      <h3 class="caption gallery-label">{dict.demo.galleryLabel}</h3>
+      {
+        site.models.map((model, index) => (
+          <figure class="model">
+            <ul class="shots" tabindex="0" aria-label={model.name ?? dict.demo.galleryLabel}>
+              {model.images.length ? (
+                model.images.map((src, i) => (
+                  <li class="frame">
+                    <img src={src} alt={`${model.name ?? ''} — ${i + 1}`} loading="lazy" decoding="async" />
+                  </li>
+                ))
+              ) : (
+                <li class="frame sample">
+                  {index === 0 ? (
+                    <FloorPlan variant="render" lang={lang} rooms={dict.rooms} areas={false} />
+                  ) : (
+                    <div class="placeholder">
+                      <Text text={dict.demo.imagePending} />
+                    </div>
+                  )}
+                </li>
+              )}
+            </ul>
+            <figcaption class="caption">
+              <Fragment
+                set:html={format(dict.demo.modelCaption, {
+                  name: model.name,
+                  area: model.areaM2,
+                  rooms: model.rooms,
+                })}
+              />
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    {
+      panorama && (
+        <div class="pano">
+          <h3>{dict.demo.panoramaHeading}</h3>
+          <div class="pano-stage frame" data-panorama={panorama}>
+            <button type="button" class="btn btn-secondary" data-panorama-open>
+              {dict.demo.panoramaOpen}
+            </button>
+          </div>
+          <p class="caption">{dict.demo.panoramaHint}</p>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .video {
+    aspect-ratio: 16 / 9;
+  }
+
+  .lite-yt,
+  .video-pending {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+  }
+
+  .video-pending {
+    cursor: default;
+    align-content: center;
+    gap: 16px;
+  }
+
+  .play {
+    display: inline-grid;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--plan-teal);
+  }
+
+  .lite-yt .play {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .video-pending .play {
+    background: transparent;
+    border: 1px solid var(--line-strong);
+  }
+
+  .video-pending .play::after {
+    border-left-color: var(--concrete);
+  }
+
+  .play::after {
+    content: '';
+    margin-left: 5px;
+    border-style: solid;
+    border-width: 12px 0 12px 20px;
+    border-color: transparent transparent transparent var(--blueprint-night);
+  }
+
+  .video :global(iframe) {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .note {
+    margin-top: 8px;
+  }
+
+  .stats {
+    margin-top: 24px;
+    font-family: var(--font-heading);
+    font-size: var(--h3);
+    line-height: 1.3;
+  }
+
+  .gallery {
+    display: grid;
+    gap: 32px;
+    margin-top: 56px;
+  }
+
+  .gallery-label {
+    font-family: var(--font-body);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .model {
+    margin: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .shots {
+    list-style: none;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 85%;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+  }
+
+  .shots:has(> li:only-child) {
+    grid-auto-columns: 100%;
+  }
+
+  .shots li {
+    aspect-ratio: 730 / 455;
+    scroll-snap-align: start;
+  }
+
+  .shots li.sample {
+    background: #9fd0db;
+  }
+
+  .shots img,
+  .shots .placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pano {
+    margin-top: 56px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .pano-stage {
+    aspect-ratio: 2 / 1;
+    display: grid;
+    place-items: center;
+  }
+
+  .pano-stage :global(.pnlm-container) {
+    width: 100%;
+    height: 100%;
+  }
+
+  @media (min-width: 900px) {
+    .gallery {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .gallery-label {
+      grid-column: 1 / -1;
+    }
+
+    .shots {
+      grid-auto-columns: 100%;
+    }
+  }
+</style>

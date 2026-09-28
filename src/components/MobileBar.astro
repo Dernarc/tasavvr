@@ -1,0 +1,57 @@
+---
+/** Phones only: a bar fixed to the bottom of the screen (§3). */
+import { t, type Lang } from '../i18n';
+import { telegramUrl } from '../data/site';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+const tg = telegramUrl();
+---
+
+<div class="mobile-bar" data-mobile-bar>
+  <a href={`/${lang}/#contact`} class="btn btn-primary">
+    {dict.cta.requestDemo}
+  </a>
+  <a
+    href={tg ?? `/${lang}/#contact`}
+    class="btn btn-secondary tg"
+    data-track="contact_click"
+    data-channel="telegram"
+    rel={tg ? 'noopener' : undefined}
+  >
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+      <path d="M21 3 3 10.5l7 2.5m11-10-3.5 18-7.5-8m11-10-11 10v6l3-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path>
+    </svg>
+    {dict.cta.telegram}
+  </a>
+</div>
+
+<style>
+  .mobile-bar {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+    background: rgb(13 27 32 / 0.96);
+    border-top: 1px solid var(--line);
+  }
+
+  .mobile-bar .btn {
+    min-height: 48px;
+    padding-inline: 16px;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 900px) {
+    .mobile-bar {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,244 @@
+---
+import Logo from './Logo.astro';
+import LangSwitch from './LangSwitch.astro';
+import { t, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  path: string;
+  overHero?: boolean;
+}
+
+const { lang, path, overHero = false } = Astro.props;
+const dict = t(lang);
+const home = `/${lang}/`;
+// On the privacy page, anchors point back to the home page.
+const anchor = (id: string) => (path ? `${home}#${id}` : `#${id}`);
+
+const links = [
+  { id: 'how-it-works', label: dict.nav.howItWorks },
+  { id: 'demo', label: dict.nav.demo },
+  { id: 'packages', label: dict.nav.packages },
+  { id: 'team', label: dict.nav.team },
+  { id: 'investors', label: dict.nav.investors },
+];
+---
+
+<header class:list={['site-header', { 'over-hero': overHero }]} data-header>
+  <div class="container bar">
+    <a href={home} class="brand" aria-label={dict.a11y.logo}>
+      <Logo label="TasavVR" />
+    </a>
+
+    <nav class="nav-desktop" aria-label={dict.a11y.mainNav}>
+      <ul>
+        {links.map((l) => <li><a href={anchor(l.id)}>{l.label}</a></li>)}
+      </ul>
+    </nav>
+
+    <div class="actions">
+      <div class="lang-desktop"><LangSwitch lang={lang} path={path} label={dict.a11y.language} /></div>
+      <div class="lang-phone"><LangSwitch lang={lang} path={path} label={dict.a11y.language} compact /></div>
+      <a href={anchor('contact')} class="btn btn-primary btn-small cta-desktop">
+        {dict.cta.requestDemo}
+      </a>
+      <button
+        type="button"
+        class="menu-btn"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-menu-toggle
+        data-label-open={dict.a11y.menu}
+        data-label-close={dict.a11y.close}
+      >
+        <span class="menu-icon" aria-hidden="true"></span>
+        <span class="visually-hidden" data-menu-label>{dict.a11y.menu}</span>
+      </button>
+    </div>
+  </div>
+
+  <nav id="mobile-menu" class="nav-mobile" aria-label={dict.a11y.mainNav} hidden data-menu>
+    <ul class="container">
+      {links.map((l) => <li><a href={anchor(l.id)} data-menu-link>{l.label}</a></li>)}
+      <li><a href={anchor('faq')} data-menu-link>FAQ</a></li>
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--blueprint-night);
+    border-bottom: 1px solid var(--line);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* Transparent over the hero; turns solid Blueprint night on scroll (§3). */
+  .site-header.over-hero {
+    position: fixed;
+    inset: 0 0 auto 0;
+    background: transparent;
+    border-bottom-color: transparent;
+  }
+
+  .site-header.over-hero.is-solid,
+  .site-header.over-hero.menu-open {
+    background: var(--blueprint-night);
+    border-bottom-color: var(--line);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header {
+      transition: none;
+    }
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: var(--header-h);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+
+  .nav-desktop {
+    display: none;
+  }
+
+  .nav-desktop ul {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+  }
+
+  .nav-desktop a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    color: var(--drafting-paper);
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .nav-desktop a:hover {
+    color: var(--plan-teal);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .lang-desktop,
+  .cta-desktop {
+    display: none;
+  }
+
+  .menu-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .menu-icon,
+  .menu-icon::before,
+  .menu-icon::after {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--drafting-paper);
+  }
+
+  .menu-icon {
+    position: relative;
+  }
+
+  .menu-icon::before,
+  .menu-icon::after {
+    content: '';
+    position: absolute;
+    left: 0;
+  }
+
+  .menu-icon::before {
+    top: -7px;
+  }
+
+  .menu-icon::after {
+    top: 7px;
+  }
+
+  [aria-expanded='true'] .menu-icon {
+    background: transparent;
+  }
+
+  [aria-expanded='true'] .menu-icon::before {
+    top: 0;
+    transform: rotate(45deg);
+  }
+
+  [aria-expanded='true'] .menu-icon::after {
+    top: 0;
+    transform: rotate(-45deg);
+  }
+
+  .nav-mobile {
+    border-top: 1px solid var(--line);
+    background: var(--blueprint-night);
+    max-height: calc(100dvh - var(--header-h));
+    overflow-y: auto;
+  }
+
+  .nav-mobile ul {
+    list-style: none;
+    padding-block: 8px 24px;
+  }
+
+  .nav-mobile a {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    border-bottom: 1px solid var(--line);
+    color: var(--drafting-paper);
+    text-decoration: none;
+    font-family: var(--font-heading);
+    font-size: 18px;
+  }
+
+  @media (min-width: 1100px) {
+    .nav-desktop,
+    .lang-desktop {
+      display: block;
+    }
+
+    .lang-phone,
+    .menu-btn,
+    .nav-mobile {
+      display: none !important;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .cta-desktop {
+      display: inline-flex;
+      margin-left: 8px;
+    }
+  }
+</style>

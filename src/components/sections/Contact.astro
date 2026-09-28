@@ -1,0 +1,398 @@
+---
+/**
+ * Request a demo (§4.12). Labels above fields, errors next to their field,
+ * a hidden honeypot for spam bots. Posts to functions/api/demo-request.ts,
+ * which forwards to the team's Telegram group (and email, if configured).
+ */
+import Text from '../Text.astro';
+import { format, t, type Lang } from '../../i18n';
+import { phoneHref, site, telegramUrl } from '../../data/site';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+const c = dict.contact;
+const tg = telegramUrl();
+const tel = phoneHref();
+const optional = `<span class="opt">(${c.fields.optional})</span>`;
+---
+
+<section id="contact" class="section" aria-labelledby="contact-title">
+  <div class="container layout">
+    <div class="intro">
+      <h2 id="contact-title">{c.heading}</h2>
+      <p class="lead">{c.text}</p>
+
+      <div class="direct">
+        <p class="caption">{c.direct}</p>
+        <ul>
+          <li>
+            {tg ? <a href={tg} rel="noopener" data-track="contact_click" data-channel="telegram">Telegram @{site.contacts.telegram}</a> : <span>{'Telegram '}<Text text="[FILL: @username]" /></span>}
+          </li>
+          <li>
+            {tel ? <a href={tel} data-track="contact_click" data-channel="phone">{site.contacts.phone}</a> : <span><Text text="[FILL: +998 XX XXX XX XX]" /></span>}
+          </li>
+          <li>
+            {site.contacts.email ? <a href={`mailto:${site.contacts.email}`} data-track="contact_click" data-channel="email">{site.contacts.email}</a> : <span><Text text="[FILL: hello@tasavvr.uz]" /></span>}
+          </li>
+          <li>
+            {site.social.instagram ? <a href={site.social.instagram} rel="noopener">Instagram</a> : <span>{'Instagram '}<Text text="[FILL: @username]" /></span>}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="form-wrap">
+      <form
+        class="form"
+        action={site.formEndpoint}
+        method="post"
+        novalidate
+        data-demo-form
+        data-msg-name={c.errors.name}
+        data-msg-phone={c.errors.phone}
+        data-msg-role={c.errors.role}
+        data-msg-consent={c.errors.consent}
+        data-msg-server={c.errors.server}
+        data-msg-sending={c.sending}
+      >
+        <input type="hidden" name="lang" value={lang} />
+
+        <!-- Honeypot: hidden from people, filled in by bots -->
+        <div class="hp" aria-hidden="true">
+          <label for="f-website">Website</label>
+          <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label for="f-name">{c.fields.name}</label>
+          <input id="f-name" name="name" type="text" autocomplete="name" required aria-describedby="e-name" maxlength="120" />
+          <p class="error" id="e-name" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="f-phone">{c.fields.phone}</label>
+          <div class="phone">
+            <span class="prefix" aria-hidden="true">+998</span>
+            <input
+              id="f-phone"
+              name="phone"
+              type="tel"
+              inputmode="numeric"
+              autocomplete="tel-national"
+              placeholder="90 123 45 67"
+              required
+              aria-describedby="e-phone"
+              data-phone
+            />
+          </div>
+          <p class="error" id="e-phone" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="f-company"><Fragment set:html={`${format(c.fields.company)} ${optional}`} /></label>
+          <input id="f-company" name="company" type="text" autocomplete="organization" maxlength="160" />
+        </div>
+
+        <div class="field">
+          <label for="f-role">{c.fields.role}</label>
+          <select id="f-role" name="role" required aria-describedby="e-role" data-role-select>
+            <option value="">{c.choose}</option>
+            {Object.entries(c.roles).map(([value, label]) => <option value={value}>{label}</option>)}
+          </select>
+          <p class="error" id="e-role" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="f-package"><Fragment set:html={`${format(c.fields.package)} ${optional}`} /></label>
+          <select id="f-package" name="package" data-package-select>
+            <option value="">{c.choose}</option>
+            {Object.entries(c.packageOptions).map(([value, label]) => <option value={value}>{label}</option>)}
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="f-size"><Fragment set:html={`${format(c.fields.size)} ${optional}`} /></label>
+          <input id="f-size" name="size" type="text" aria-describedby="h-size" maxlength="160" />
+          <p class="hint" id="h-size">{c.fields.sizeHint}</p>
+        </div>
+
+        <div class="field full">
+          <label for="f-message"><Fragment set:html={`${format(c.fields.message)} ${optional}`} /></label>
+          <textarea id="f-message" name="message" rows="4" maxlength="2000"></textarea>
+        </div>
+
+        <fieldset class="field full">
+          <legend><Fragment set:html={`${format(c.fields.channel)} ${optional}`} /></legend>
+          <div class="choices">
+            {
+              Object.entries(c.channels).map(([value, label], i) => (
+                <label class="choice">
+                  <input type="radio" name="channel" value={value} checked={i === 0} />
+                  <span>{label}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <div class="field full">
+          <label class="choice consent">
+            <input type="checkbox" name="consent" value="yes" required aria-describedby="e-consent" />
+            <span>
+              {c.consent} <a href={`/${lang}/privacy/`}>{c.privacyLink}</a>
+            </span>
+          </label>
+          <p class="error" id="e-consent" hidden></p>
+        </div>
+
+        <div class="full submit-row">
+          <button type="submit" class="btn btn-primary" data-submit>{c.submit}</button>
+          <p class="error" data-server-error role="alert" hidden></p>
+        </div>
+      </form>
+
+      <div class="success" data-success tabindex="-1" hidden>
+        <p class="success-title">
+          <Text text={c.success} values={{ hours: site.replyWithinHours }} />
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .layout {
+    display: grid;
+    gap: 40px;
+  }
+
+  .intro {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+
+  .direct {
+    margin-top: 16px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  .direct ul {
+    list-style: none;
+    display: grid;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .direct a,
+  .direct span {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 6px;
+    min-height: 40px;
+    font-weight: 600;
+  }
+
+  .form-wrap {
+    background: var(--graphite);
+    border: 1px solid var(--line);
+    padding: 24px 20px;
+  }
+
+  .form {
+    display: grid;
+    gap: 20px;
+  }
+
+  .field {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    min-width: 0;
+  }
+
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  label,
+  legend {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    padding: 0;
+  }
+
+  .field :global(.opt) {
+    font-weight: 400;
+    color: var(--concrete);
+  }
+
+  input[type='text'],
+  input[type='tel'],
+  select,
+  textarea {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 14px;
+    background: var(--blueprint-night);
+    border: 1px solid rgb(169 181 184 / 0.45);
+    border-radius: 0;
+    color: var(--drafting-paper);
+    font-size: 16px; /* no zoom on iOS */
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--plan-teal) 50%),
+      linear-gradient(135deg, var(--plan-teal) 50%, transparent 50%);
+    background-position:
+      calc(100% - 20px) 50%,
+      calc(100% - 14px) 50%;
+    background-size: 6px 6px;
+    background-repeat: no-repeat;
+    padding-right: 40px;
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline-offset: 0;
+    border-color: var(--plan-teal);
+  }
+
+  [aria-invalid='true'] {
+    border-color: #ff9d8a !important;
+  }
+
+  .phone {
+    display: flex;
+  }
+
+  .prefix {
+    display: grid;
+    place-items: center;
+    padding: 0 12px;
+    border: 1px solid rgb(169 181 184 / 0.45);
+    border-right: 0;
+    color: var(--concrete);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .phone input {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hint {
+    font-size: 14px;
+    color: var(--concrete);
+  }
+
+  /* Error text: 7.4:1 on Graphite */
+  .error {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ff9d8a;
+  }
+
+  .choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 6px;
+  }
+
+  .choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    font-weight: 400;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .choice input {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    flex: 0 0 20px;
+    accent-color: var(--plan-teal);
+  }
+
+  .consent {
+    align-items: flex-start;
+    font-size: 14px;
+  }
+
+  .consent input {
+    margin-top: 2px;
+  }
+
+  .submit-row {
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+  }
+
+  .submit-row .btn {
+    width: 100%;
+  }
+
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .success {
+    padding: 24px 0;
+  }
+
+  .success-title {
+    font-family: var(--font-heading);
+    font-size: var(--h3);
+    line-height: 1.35;
+    color: var(--plan-teal);
+  }
+
+  @media (min-width: 700px) {
+    .form {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 20px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .submit-row .btn {
+      width: auto;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .layout {
+      grid-template-columns: 4fr 7fr;
+      gap: 64px;
+    }
+
+    .form-wrap {
+      padding: 36px;
+    }
+  }
+</style>

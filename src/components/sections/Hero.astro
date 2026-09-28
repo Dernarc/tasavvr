@@ -1,0 +1,178 @@
+---
+import FloorPlan from '../FloorPlan.astro';
+import Text from '../Text.astro';
+import { t, type Lang } from '../../i18n';
+import { site } from '../../data/site';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+const { heroDesktop, heroMobile } = site.media;
+const hasVideo = Boolean(heroDesktop || heroMobile);
+const poster = (heroDesktop ?? heroMobile)?.poster;
+---
+
+<section id="hero" class="hero" aria-labelledby="hero-title">
+  <!-- Plan linework behind the hero (§5.4) -->
+  <div class="grid-lines" aria-hidden="true"></div>
+
+  <div class="container layout">
+    <div class="copy">
+      <h1 id="hero-title">
+        <span>{dict.hero.headline[0]}</span>
+        <span class="accent">{dict.hero.headline[1]}</span>
+      </h1>
+      <p class="sub">{dict.hero.sub}</p>
+      <div class="btn-row">
+        <a href="#contact" class="btn btn-primary cta-desktop">
+          {dict.cta.requestDemo}
+        </a>
+        <a href="#demo" class="btn btn-secondary">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M4 2.5v11l9-5.5z" fill="currentColor"></path></svg>
+          {dict.cta.watchWalkthrough}
+        </a>
+      </div>
+      <p class="proof">
+        <Text text={dict.hero.proof} values={{ models: site.stats.houseModels, testers: site.stats.testers }} />
+      </p>
+    </div>
+
+    <div class="visual frame">
+      {
+        hasVideo ? (
+          <video
+            class="hero-video"
+            muted
+            loop
+            playsinline
+            preload="none"
+            poster={poster}
+            aria-label={dict.hero.visualLabel}
+            data-hero-video
+          >
+            {heroMobile && <source src={heroMobile.src} type="video/mp4" media="(max-width: 899px)" />}
+            {heroDesktop && <source src={heroDesktop.src} type="video/mp4" />}
+          </video>
+        ) : (
+          <div class="plan-stand-in">
+            <FloorPlan variant="line" lang={lang} rooms={dict.rooms} label={dict.hero.visualLabel} dimensions areas={false} />
+            <p class="caption pending">
+              <Text text={dict.hero.videoPending} />
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding-block: calc(var(--header-h) + 24px) 48px;
+    overflow: hidden;
+  }
+
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(var(--line), var(--line)) 0 32% / 100% 1px no-repeat,
+      linear-gradient(var(--line), var(--line)) 58% 0 / 1px 100% no-repeat,
+      linear-gradient(var(--line), var(--line)) 0 86% / 100% 1px no-repeat;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .layout {
+    position: relative;
+    display: grid;
+    gap: 32px;
+  }
+
+  /* Phones: video on top */
+  .visual {
+    order: -1;
+    aspect-ratio: 1 / 1;
+  }
+
+  .copy {
+    display: grid;
+    gap: 20px;
+    align-content: start;
+  }
+
+  h1 span {
+    display: block;
+  }
+
+  .accent {
+    color: var(--plan-teal);
+  }
+
+  .sub {
+    color: var(--drafting-paper);
+    max-width: 34rem;
+  }
+
+  .proof {
+    font-size: var(--small);
+    color: var(--concrete);
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    max-width: 34rem;
+  }
+
+  /* On phones the bottom bar carries "Request a demo". */
+  .cta-desktop {
+    display: none;
+  }
+
+  .hero-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .plan-stand-in {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    align-items: center;
+    padding: 20px 16px 12px;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 39px, rgb(125 214 222 / 0.06) 39px 40px),
+      repeating-linear-gradient(90deg, transparent 0 39px, rgb(125 214 222 / 0.06) 39px 40px);
+  }
+
+  .pending {
+    margin-top: 8px;
+  }
+
+  @media (min-width: 900px) {
+    .layout {
+      grid-template-columns: 5fr 7fr;
+      align-items: center;
+      gap: 48px;
+    }
+
+    .visual {
+      order: 0;
+      aspect-ratio: 16 / 10;
+    }
+
+    .cta-desktop {
+      display: inline-flex;
+    }
+
+    .plan-stand-in {
+      padding: 32px;
+    }
+  }
+</style>

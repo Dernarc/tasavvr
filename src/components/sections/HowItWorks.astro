@@ -1,0 +1,120 @@
+---
+import Text from '../Text.astro';
+import { t, type Lang } from '../../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+---
+
+<section id="how-it-works" class="section" aria-labelledby="how-title">
+  <div class="container">
+    <div class="section-head">
+      <h2 id="how-title">{dict.how.heading}</h2>
+    </div>
+
+    <ol class="steps">
+      {
+        dict.how.steps.map((step, i) => (
+          <li>
+            <span class="num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <h3>{step.title}</h3>
+            <p><Text text={step.text} /></p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="btn-row after">
+      <a href="#contact" class="btn btn-primary">{dict.cta.requestDemo}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .steps {
+    list-style: none;
+    display: grid;
+    gap: 0;
+    counter-reset: step;
+  }
+
+  /* Phones: a vertical list joined by a thin line */
+  li {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    padding: 0 0 32px 56px;
+  }
+
+  li::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 36px;
+    bottom: 0;
+    width: 1px;
+    background: var(--line-strong);
+  }
+
+  li:last-child::before {
+    display: none;
+  }
+
+  .num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--plan-teal);
+    color: var(--plan-teal);
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--blueprint-night);
+  }
+
+  h3 {
+    font-size: var(--h3);
+    padding-top: 4px;
+  }
+
+  p {
+    color: var(--concrete);
+  }
+
+  .after {
+    margin-top: 16px;
+  }
+
+  /* Computers: four steps in a row, joined by a thin line */
+  @media (min-width: 900px) {
+    .steps {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+    }
+
+    li {
+      padding: 64px 0 0;
+      align-content: start;
+    }
+
+    li::before {
+      left: 44px;
+      right: -32px;
+      top: 18px;
+      bottom: auto;
+      width: auto;
+      height: 1px;
+    }
+
+    h3 {
+      font-size: 20px;
+    }
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+/** Accordion; one answer open at a time via the shared `name` attribute. */
+import Text from '../Text.astro';
+import { t, type Lang } from '../../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const dict = t(lang);
+---
+
+<section id="faq" class="section" aria-labelledby="faq-title">
+  <div class="container narrow">
+    <div class="section-head">
+      <h2 id="faq-title">{dict.faq.heading}</h2>
+    </div>
+
+    <div class="faq">
+      {
+        dict.faq.items.map((item, i) => (
+          <details name="faq" open={i === 0} data-faq>
+            <summary>
+              <span>{item.q}</span>
+              <span class="icon" aria-hidden="true" />
+            </summary>
+            <p>
+              <Text text={item.a} />
+            </p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .narrow {
+    max-width: calc(880px + 2 * var(--gutter));
+  }
+
+  .faq {
+    border-top: 1px solid var(--line-strong);
+  }
+
+  details {
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    min-height: 64px;
+    padding-block: 16px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+    font-size: 17px;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary:hover {
+    color: var(--plan-teal);
+  }
+
+  .icon {
+    position: relative;
+    flex: 0 0 16px;
+    height: 16px;
+  }
+
+  .icon::before,
+  .icon::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 7px;
+    height: 2px;
+    background: var(--plan-teal);
+  }
+
+  .icon::after {
+    transform: rotate(90deg);
+  }
+
+  details[open] .icon::after {
+    display: none;
+  }
+
+  details p {
+    padding: 0 32px 24px 0;
+    color: var(--concrete);
+  }
+</style>

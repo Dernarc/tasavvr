@@ -1,0 +1,94 @@
+---
+import '@fontsource/unbounded/700.css';
+import '@fontsource/manrope/400.css';
+import '@fontsource/manrope/600.css';
+import '@fontsource/manrope/800.css';
+import '../styles/global.css';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import MobileBar from '../components/MobileBar.astro';
+import { htmlLang, languages, ogLocale, t, type Lang } from '../i18n';
+import { site } from '../data/site';
+
+interface Props {
+  lang: Lang;
+  /** Path after the language prefix, e.g. "" or "privacy/". */
+  path?: string;
+  title: string;
+  description: string;
+  /** Header starts transparent over the hero. */
+  overHero?: boolean;
+}
+
+const { lang, path = '', title, description, overHero = false } = Astro.props;
+const dict = t(lang);
+const base = site.url.replace(/\/$/, '');
+const urlFor = (l: Lang) => `${base}/${l}/${path}`;
+const ogImage = `${base}/og/og-${lang}.png`;
+const { yandexMetricaId, ga4Id } = site.analytics;
+---
+
+<!doctype html>
+<html lang={htmlLang[lang]}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0D1B20" />
+    <link rel="canonical" href={urlFor(lang)} />
+    {languages.map((l) => <link rel="alternate" hreflang={htmlLang[l]} href={urlFor(l)} />)}
+    <link rel="alternate" hreflang="x-default" href={urlFor('uz')} />
+    <link rel="icon" href="/brand/icon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
+
+    <!-- Link previews: Telegram caches them; refresh via @WebpageBot after changes (§7.4) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TasavVR" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={urlFor(lang)} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content={ogLocale[lang]} />
+    {languages.filter((l) => l !== lang).map((l) => <meta property="og:locale:alternate" content={ogLocale[l]} />)}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {
+      yandexMetricaId && (
+        <script is:inline define:vars={{ id: yandexMetricaId }}>
+          (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+          m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+          (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+          window.ym(id, "init", { clickmap: true, trackLinks: true, accurateTrackBounce: true });
+          window.__ymId = id;
+        </script>
+      )
+    }
+    {ga4Id && <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`} />}
+    {
+      ga4Id && (
+        <script is:inline define:vars={{ id: ga4Id }}>
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function () { window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', id);
+        </script>
+      )
+    }
+  </head>
+  <body data-lang={lang}>
+    <a class="skip-link" href="#main">{dict.a11y.skip}</a>
+    <Header lang={lang} path={path} overHero={overHero} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer lang={lang} path={path} />
+    <MobileBar lang={lang} />
+    <script>
+      import '../scripts/main';
+    </script>
+  </body>
+</html>
